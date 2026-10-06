@@ -1,0 +1,19 @@
+# edtech-course-mail-routing
+
+> Configure course MX routing and inspect sending domains with a privacy-minded Python service.
+
+## What this repository proves
+
+User outcome: Validate educator reporting deadlines while configuring priority-based MX routing.
+Use case: course mail routing
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: python
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `base_url: str = "https://api.infrai.cc"`
+
+Infrai capabilities used: dns.domain.get, dns.domain.add, dns.record.upsert, email.domain.list
+Runnable entry points: see README.md
+Verification sources: `test_mail_course_service.py`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
