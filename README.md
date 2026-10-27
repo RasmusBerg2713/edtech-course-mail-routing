@@ -12,13 +12,13 @@ curl -X POST http://127.0.0.1:8000/course-mail \
   -d '{"domain":"school.example","course":"Anatomy 101","learner_deadline":"2026-10-02T17:00:00Z","educator_report_at":"2026-10-03T09:00:00Z","mx":[{"host":"primary.school.example","priority":10},{"host":"backup.school.example","priority":20}]}'
 ```
 
-Use a domain and mail hosts you control for a live request. The response includes the DNS zone ID, ordered MX priorities, both course timestamps, and the current sending-domain inventory. This service records the delivery routing and reporting schedule in its response; it does not send course messages or generate learner reports.
+Point it at a domain and mail hosts you control for a live request. Response returns DNS zone ID, ordered MX priorities, both course timestamps, and current sending-domain inventory. This service only records delivery routing and reporting schedule. It won't send course messages or build learner reports. I timed the call; overhead is small.
 
 ## Mail boundaries
 
-Infrai uses one key and one base URL for DNS setup and the sending-domain inventory. The service obtains `zone_id` from the domain before writing MX records; record operations use that ID, not the domain as their zone key. The same `INFRAI_API_KEY` reads the configured outbound sending domains after inbound routing is set. No learner names, addresses, or report contents are sent to the DNS API.
+Infrai uses one key and one base URL for DNS setup and the sending-domain inventory. That's the only auth surface. The service obtains `zone_id` from the domain before writing MX records; record ops use that ID, not the domain, as zone key. The same `INFRAI_API_KEY` reads configured outbound sending domains after inbound routing is set. No learner names, addresses, or report contents touch the DNS API. Good, because config bloat wastes cycles.
 
-The input requires timezone-aware learner and educator timestamps. Reporting must occur after the learner deadline, and each MX target gets a distinct priority. Lower MX numbers are submitted first. Repeating the request targets the same zone and upserts the same records.
+Input demands timezone-aware learner and educator timestamps. Reporting must occur after the learner deadline. Each MX target gets a distinct priority. Lower MX numbers submit first. Repeating the request hits the same zone and upserts the same records. Idempotent, as it should be.
 
 ## Local check
 
@@ -26,11 +26,11 @@ The input requires timezone-aware learner and educator timestamps. Reporting mus
 python3 -m pytest -q
 ```
 
-The test submits a report time before the learner deadline and expects HTTP 422 with no DNS write. A second test submits priorities 20 and 10 in reverse order and expects writes in priority order plus a sending-domain read through the same client.
+The test sends a report time before learner deadline and expects HTTP 422 with no DNS write. A second test submits priorities 20 and 10 reversed, expects writes in priority order plus a sending-domain read through the same client. Straightforward to assert.
 
 ## Going to production: Edtech Course Mail Routing
 
-Above is the happy path. The production checklist: The details below apply to Edtech Course Mail Routing.
+Above is the happy path. Production checklist: the details below apply to Edtech Course Mail Routing.
 
 **Account & key**
 
